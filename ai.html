@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI File Analysis - Tomis.AI</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .upload-container {
+            margin-top: 2rem;
+            padding: 2rem;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            text-align: center;
+        }
+        #file-input {
+            margin-top: 1rem;
+        }
+        #file-info {
+            margin-top: 2rem;
+            text-align: left;
+            font-family: monospace;
+            white-space: pre;
+            background-color: #f4f4f4;
+            padding: 1rem;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><a href="index.html">Tomis.AI</a></h1>
+        <nav>
+            <ul>
+                <li><a href="gdc-software.html">GDC Software</a></li>
+                <li><a href="connected-servers.html">Connected Servers</a></li>
+                <li><a href="air-gapped.html">Air-Gapped</a></li>
+                <li><a href="ai.html">AI</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <h2>AI File Analyzer</h2>
+        <p>Upload a file to see its metadata and type.</p>
+        <div class="upload-container">
+            <label for="file-input">Choose a file to analyze:</label>
+            <input type="file" id="file-input">
+        </div>
+        <div id="file-info" style="display: none;"></div>
+    </main>
+
+    <script>
+        document.getElementById('file-input').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const fileInfoDiv = document.getElementById('file-info');
+
+            if (file) {
+                const lastModifiedDate = new Date(file.lastModified).toLocaleString();
+                
+                const info = `File Name:      ${file.name}
+File Type:      ${file.type || 'N/A'}
+File Size:      ${file.size} bytes
+Last Modified:  ${lastModifiedDate}`;
+
+                fileInfoDiv.textContent = info;
+                fileInfoDiv.style.display = 'block';
+            } else {
+                fileInfoDiv.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
