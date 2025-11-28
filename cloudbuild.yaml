@@ -1,0 +1,48 @@
+steps:
+# 1. Build the container image
+# This step builds the Docker image using the Dockerfile in the current directory.
+# The image is tagged with the project ID and the commit SHA to ensure uniqueness.
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/tomis-ai-backend:$COMMIT_SHA', '.']
+
+# 2. Push the container image to Google Container Registry (GCR)
+# This step pushes the tagged image to GCR, making it available for deployment.
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/tomis-ai-backend:$COMMIT_SHA']
+
+# 3. Deploy the container image to Cloud Run
+# This step deploys the image from GCR to a new or existing Cloud Run service.
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+    # The service name for the deployment
+    - 'run'
+    - 'deploy'
+    - 'tomis-ai-backend'
+    
+    # The specific image to deploy
+    - '--image=gcr.io/$PROJECT_ID/tomis-ai-backend:$COMMIT_SHA'
+    
+    # The GCP region where the service will be deployed
+    # You can change 'us-central1' to your preferred region
+    - '--region=us-central1'
+    
+    # Specifies a fully managed environment
+    - '--platform=managed'
+    
+    # Allows public access to the service, which is necessary for the frontend to call it.
+    # For restricted access, you would configure IAM.
+    - '--allow-unauthenticated'
+    
+    # The port the container listens on
+    - '--port=8080'
+
+# This section specifies the images that are built by this pipeline.
+# Cloud Build will push these images to the registry after they are built.
+images:
+- 'gcr.io/$PROJECT_ID/tomis-ai-backend:$COMMIT_SHA'
+
+# You can set a timeout for the build.
+options:
+  machineType: 'N1_HIGHCPU_8'
+timeout: '1200s'
