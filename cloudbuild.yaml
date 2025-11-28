@@ -15,34 +15,46 @@ steps:
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: gcloud
   args:
-    # The service name for the deployment
+    # Comanda principală pentru Cloud Run
     - 'run'
     - 'deploy'
     - 'tomis-ai-backend'
     
-    # The specific image to deploy
+    # Imaginea specifică de deploy
     - '--image=gcr.io/$PROJECT_ID/tomis-ai-backend:$COMMIT_SHA'
     
-    # The GCP region where the service will be deployed
-    # You can change 'us-central1' to your preferred region
+    # Regiunea GCP (poate fi modificată)
     - '--region=us-central1'
     
-    # Specifies a fully managed environment
+    # Specificații de platformă
     - '--platform=managed'
     
-    # Allows public access to the service, which is necessary for the frontend to call it.
-    # For restricted access, you would configure IAM.
+    # Permite acces public (necesar pentru Front-end)
     - '--allow-unauthenticated'
     
-    # The port the container listens on
+    # Portul pe care ascultă containerul
     - '--port=8080'
+    
+    # SPECIFICĂ CONTUL DE SERVICIU DE RULARE PENTRU SERVICIUL CLOUD RUN
+    # Acest Cont de Serviciu trebuie să aibă permisiuni GCS și Speech-to-Text.
+    # Valoarea de mai jos este un placeholder; folosiți Contul de Serviciu real!
+    - '--service-account=tomis-ai-service@ro-igpr-speech-to-text.iam.gserviceaccount.com' 
 
-# This section specifies the images that are built by this pipeline.
-# Cloud Build will push these images to the registry after they are built.
+# Această secțiune specifică imaginile care sunt construite de acest pipeline.
 images:
 - 'gcr.io/$PROJECT_ID/tomis-ai-backend:$COMMIT_SHA'
 
-# You can set a timeout for the build.
+# Secțiunea options: Rezolvarea erorii de logare și Contul de Serviciu
 options:
+  # Timpul maxim pentru build
+  timeout: '1200s'
+  
+  # Tipul de mașină (pentru build-uri mai rapide)
   machineType: 'N1_HIGHCPU_8'
-timeout: '1200s'
+  
+  # CONTUL DE SERVICIU PENTRU A RULA CLOUD BUILD-UL ÎN SINE
+  # Acest cont declanșează și gestionează build-ul
+  serviceAccount: projects/$PROJECT_NUMBER/serviceAccounts/tomis-ai-service@ro-igpr-speech-to-text.iam.gserviceaccount.com
+  
+  # REZOLVAREA ERORII: Specifică să folosească doar jurnalele Cloud Logging
+  logging: CLOUD_LOGGING_ONLY
