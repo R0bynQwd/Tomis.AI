@@ -45,29 +45,84 @@
         <div class="upload-container">
             <label for="file-input">Choose a file to analyze:</label>
             <input type="file" id="file-input">
+            <button id="analyze-button">Analyze</button>
+            <div id="loader" style="display: none; margin-top: 1rem;">Analyzing...</div>
         </div>
         <div id="file-info" style="display: none;"></div>
     </main>
 
     <script>
-        document.getElementById('file-input').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            const fileInfoDiv = document.getElementById('file-info');
+        // !!! IMPORTANT: Replace this with your actual Cloud Function URL !!!
+        const BACKEND_URL = 'https://YOUR_REGION-YOUR_PROJECT_ID.cloudfunctions.net/analyze-file';
 
-            if (file) {
-                const lastModifiedDate = new Date(file.lastModified).toLocaleString();
-                
-                const info = `File Name:      ${file.name}
-File Type:      ${file.type || 'N/A'}
-File Size:      ${file.size} bytes
-Last Modified:  ${lastModifiedDate}`;
+        const fileInput = document.getElementById('file-input');
+        const analyzeBtn = document.getElementById('analyze-button');
+        const fileInfoDiv = document.getElementById('file-info');
+        const loader = document.getElementById('loader');
 
-                fileInfoDiv.textContent = info;
+        analyzeBtn.addEventListener('click', async () => {
+            if (fileInput.files.length === 0) {
+                alert('Please select a file first.');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Show loader and hide previous results
+            loader.style.display = 'block';
+            fileInfoDiv.style.display = 'none';
+            analyzeBtn.disabled = true;
+
+            try {
+                const response = await fetch(BACKEND_URL, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                }
+
+                const results = await response.json();
+                displayResults(results);
+
+            } catch (error) {
+                fileInfoDiv.innerHTML = `<p style="color: red;"><strong>Error:</strong> ${error.message}</p>`;
                 fileInfoDiv.style.display = 'block';
-            } else {
-                fileInfoDiv.style.display = 'none';
+            } finally {
+                // Hide loader and re-enable button
+                loader.style.display = 'none';
+                analyzeBtn.disabled = false;
             }
         });
+
+        function displayResults(data) {
+            let html = `<h3>Analysis Results</h3>`;
+            if (data.error) {
+                html += `<p style="color: red;"><strong>Error:</strong> ${data.error}</p>`;
+            } else {
+                html += '<ul>';
+                for (const [key, value] of Object.entries(data)) {
+                    let displayValue = value;
+                    if (Array.isArray(value)) {
+                        displayValue = `<ul>${value.map(item => `<li>${item}</li>`).join('')}</ul>`;
+                        html += `<li><strong>${formatKey(key)}:</strong>${displayValue}</li>`;
+                    } else {
+                        html += `<li><strong>${formatKey(key)}:</strong> ${displayValue}</li>`;
+                    }
+                }
+                html += '</ul>';
+            }
+            fileInfoDiv.innerHTML = html;
+            fileInfoDiv.style.display = 'block';
+        }
+
+        function formatKey(key) {
+            return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
     </script>
 </body>
 </html>

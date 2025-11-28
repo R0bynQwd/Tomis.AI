@@ -1,0 +1,10 @@
+# Google Cloud Functions Framework
+functions-framework==3.*
+
+# Google Cloud Client Libraries
+google-cloud-vision==3.*
+google-cloud-language==2.*
+google-cloud-translate==3.*
+
+# Used for handling HTTP requests in the function
+Flask==3.*
