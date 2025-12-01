@@ -1,22 +1,13 @@
-# Node 18 LTS
-FROM node:18-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# copy package files first to cache deps
-COPY package.json package-lock.json* ./
-RUN npm install --omit=dev
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-
-# copy rest
 COPY . .
 
-# run as non-root for best practice
-RUN useradd --user-group --create-home --shell /bin/false appuser \
-  && chown -R appuser:appuser /app
-USER appuser
-
-ENV PORT=8080
+ENV PORT 8080
 EXPOSE 8080
 
-CMD ["npm", "start"]
+CMD ["gunicorn", "-b", "0.0.0.0:8080", "app:app", "--workers", "1"]
