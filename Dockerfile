@@ -5,7 +5,8 @@ WORKDIR /app
 
 # copy package files first to cache deps
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production
+RUN npm install --omit=dev
+
 
 # copy rest
 COPY . .
