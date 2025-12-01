@@ -28,9 +28,6 @@ gcloud services enable run.googleapis.com cloudbuild.googleapis.com secretmanage
 gcloud builds submit --tag gcr.io/ro-igpr-speech-to-text/tomis-ai:latest
 
 
-gcloud run deploy tomis-ai \
-  --image gcr.io/ro-igpr-speech-to-text/tomis-ai:latest \
-  --region europe-west1 \
-  --platform managed
+gcloud run deploy tomis-ai --image gcr.io/ro-igpr-speech-to-text/tomis-ai:latest --region europe-west1 --platform managed
 
 
