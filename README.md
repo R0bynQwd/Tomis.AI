@@ -20,3 +20,13 @@ gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_EM
 gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_EMAIL}" --role="roles/aiplatform.user"
 gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_EMAIL}" --role="roles/cloudbuild.builds.builder"
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com secretmanager.googleapis.com speech.googleapis.com storage.googleapis.com aiplatform.googleapis.com
+
+
+########################################################################
+gcloud builds submit --tag gcr.io/ro-igpr-speech-to-text/tomis-ai:latest
+gcloud run deploy tomis-ai \
+  --image gcr.io/ro-igpr-speech-to-text/tomis-ai:latest \
+  --region europe-west1 \
+  --platform managed
+
+
