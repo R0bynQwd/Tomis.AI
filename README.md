@@ -2,10 +2,8 @@ gcloud config set project ro-igpr-speech-to-text
 NEW_BUCKET=tomis-ai-public
 gsutil mb -l europe-west1 gs://$NEW_BUCKET
 
-# sincronizează conținutul (copie incrementală). -m = paralelizare
 gsutil -m rsync -r gs://ro-igpr-speech-to-text-workspace gs://$NEW_BUCKET
 
-# verifică lista
 gsutil ls gs://$NEW_BUCKET
 gcloud storage buckets describe gs://$NEW_BUCKET --format="value(iamConfiguration.publicAccessPrevention)"
 
@@ -15,7 +13,7 @@ SA_EMAIL=${SA_NAME}@${PROJECT}.iam.gserviceaccount.com
 
 gcloud iam service-accounts create $SA_NAME --display-name="Tomis AI Cloud Run SA"
 
-# acordă roluri minim necesare:
+
 gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_EMAIL}" --role="roles/run.admin"
 gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_EMAIL}" --role="roles/storage.objectViewer"
 gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:${SA_EMAIL}" --role="roles/secretmanager.secretAccessor"
