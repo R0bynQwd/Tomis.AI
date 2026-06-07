@@ -1,0 +1,16 @@
+[2026-06-07 21:55:29] === INSTALARE NOD CURAT (DOCKER ONLY) ===
+[2026-06-07 21:55:29] Pasul 1: Activare WSL2 si Virtualization...
+[2026-06-07 21:55:57] NOD CONFIGURAT. Toate modulele AI vor rula in Docker.
+[2026-06-07 21:56:47] Actualizarea modelelor pe Windows descarca imaginile Docker necesare.
+[2026-06-07 22:23:41] === INSTALARE NOD CURAT (DOCKER ONLY) ===
+[2026-06-07 22:23:41] Pasul 1: Activare WSL2 si Virtualization...
+[2026-06-07 22:23:47] NOD CONFIGURAT. Toate modulele AI vor rula in Docker.
+[2026-06-07 22:44:05] === INITIALIZING MASTER ROLE ===
+[2026-06-07 22:44:05] Downloading Core Binaries (k3d)...
+[2026-06-07 22:44:05] === INITIALIZING MASTER ROLE ===
+[2026-06-07 22:44:05] Downloading Core Binaries (k3d)...
+[2026-06-07 22:44:22] Master Active at 100.78.68.58. Dashboard on port 28001.
+[2026-06-07 22:45:02] Master Active at 100.78.68.58. Dashboard on port 28001.
+[2026-06-07 22:47:01] === INITIALIZING NODE ROLE ===
+[2026-06-07 22:47:01] Downloading Core Binaries (k3d)...
+[2026-06-07 22:47:10] Node joined cluster.
