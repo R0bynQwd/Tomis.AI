@@ -57,7 +57,7 @@ spec:
     spec:
       containers:
       - name: tesseract
-        image: tesseractshadow/tesseract4re:all
+        image: franky1/tesseract:latest
 ---
 apiVersion: v1
 kind: Service
