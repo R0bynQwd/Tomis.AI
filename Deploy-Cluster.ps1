@@ -111,8 +111,8 @@ if ($Role -eq "MASTER") {
     Generate-Dashboard
     Generate-Screensaver
     
-    # Create Cluster
-    k3d cluster create tomis-cluster --port "28001-28015:28001-28015@loadbalancer" --wait
+    # Create Cluster (Allowing NodePorts for AI services)
+    k3d cluster create tomis-cluster --port "28002-28015:28002-28015@loadbalancer" --k3s-arg "--service-node-port-range=28000-32767@server:0" --wait
     
     $IP = (Test-Connection -ComputerName $env:COMPUTERNAME -Count 1).IPV4Address.IPAddressToString
     $Token = "TOMIS_SECRET_" + (Get-Random -Minimum 1000 -Maximum 9999)
