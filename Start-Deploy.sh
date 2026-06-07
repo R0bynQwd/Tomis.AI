@@ -1,154 +1,147 @@
 #!/bin/bash
 # ==============================================================================
-# TOMIS.AI - Unified AI Cluster Core V20 (Master + Dashboard)
+# TOMIS.AI - Unified AI Cluster Core V21 (Linux/Unix/Edge)
 # ==============================================================================
+
+if [[ $EUID -ne 0 ]]; then
+   echo -e "\033[0;31mEROARE: Trebuie rulat ca ROOT (sudo bash Start-Deploy.sh)!\033[0m"
+   exit 1
+fi
 
 KIT_DIR="./Kit_AI_Offline"
 LOG_FILE="./deployment_log.txt"
 CONFIG_FILE="./config.json"
+NFS_BASE="/mnt/tomis"
 
 log() { echo -e "[$(date +'%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"; }
 
-# --- GENERARE DASHBOARD WEB (MASTER SIDE) ---
-generate_dashboard() {
-    cat << 'EOF' > TomisDashboard.py
-from flask import Flask, render_template_string, jsonify
-import subprocess, os, time, threading
+# --- 1. GENERARE COMPONENTE ---
+generate_screensaver() {
+    cat << 'EOF' > TOMIS_Screensaver.py
+import pygame, random, subprocess, threading, time, os, sys, math, json
+CONFIG_FILE = 'config.json'
+LOG_FILE = 'deployment_log.txt'
+LIFETIME_STATS_FILE = 'node_stats.txt'
 
-app = Flask(__name__)
+def get_stats():
+    if os.path.exists(LIFETIME_STATS_FILE):
+        try:
+            with open(LIFETIME_STATS_FILE, 'r') as f: return int(f.read().strip())
+        except: pass
+    return 0
 
-# CSS - Stealth Theme (HD)
-HTML_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="ro">
-<head>
-    <meta charset="UTF-8">
-    <title>TOMIS.AI COMMAND CENTER</title>
-    <style>
-        body { background: #050505; color: #ccc; font-family: 'Segoe UI', sans-serif; margin: 0; }
-        .header { background: #111; padding: 20px; border-bottom: 2px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        .branding { color: #555; font-size: 24px; font-weight: bold; letter-spacing: 2px; }
-        .container { padding: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background: #111; border: 1px solid #222; padding: 20px; border-radius: 8px; }
-        h2 { color: #008cff; border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 0; }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .stat-box { background: #1a1a1a; padding: 15px; border-radius: 4px; text-align: center; }
-        .stat-val { font-size: 28px; font-weight: bold; color: #fff; }
-        .stat-label { font-size: 12px; color: #666; text-transform: uppercase; }
-        .guide { background: #0a1a2a; border-left: 4px solid #008cff; padding: 15px; font-size: 14px; line-height: 1.6; }
-        code { background: #000; color: #00ff41; padding: 2px 5px; border-radius: 3px; }
-        .status-online { color: #00ff41; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="branding">ΤΟΜΙΣ.ΑΙ // MASTER_CORE</div>
-        <div id="clock">--:--:--</div>
-    </div>
-    <div class="container">
-        <div class="card">
-            <h2>CLUSTER STATUS (REAL-TIME)</h2>
-            <div class="stat-grid">
-                <div class="stat-box"><div class="stat-val" id="node-count">0</div><div class="stat-label">Noduri Active</div></div>
-                <div class="stat-box"><div class="stat-val" id="pod-count">0</div><div class="stat-label">Containere AI</div></div>
-                <div class="stat-box"><div class="stat-val" id="cpu-load">--%</div><div class="stat-label">Incarcare Cluster</div></div>
-                <div class="stat-box"><div class="stat-val" id="task-total">0</div><div class="stat-label">Sarcini Lifetime</div></div>
-            </div>
-            <div style="margin-top:20px;">
-                <p>Nod Windows Master: <span class="status-online" id="master-status">ONLINE</span></p>
-                <div id="node-list" style="font-size:13px; color:#888;"></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <h2>GHID TRANSMITERE SARCINI</h2>
-            <div class="guide">
-                <strong>1. OCR (Toate limbile + AutoDetect):</strong><br>
-                <code>curl -X POST http://MASTER_IP:28001/api/ocr -F "image=@document.jpg"</code><br><br>
-                <strong>2. Whisper ASR (Consens + Detectie 3 Puncte):</strong><br>
-                <code>curl -X POST http://MASTER_IP:28001/api/asr -F "audio=@voce.mp3"</code><br><br>
-                <strong>3. Vision (Clasificare Obiecte):</strong><br>
-                <code>curl -X POST http://MASTER_IP:28001/api/vision -F "media=@video.mp4"</code>
-            </div>
-            <p style="font-size:12px; color:#555; margin-top:15px;">
-                * Sarcina este trimisa automat catre nodul cu cel mai bun GPU.<br>
-                * Consensus Engine va valida rezultatul pe 2 noduri diferite.
-            </p>
-        </div>
-    </div>
+class Screensaver:
+    def __init__(self):
+        pygame.init()
+        self.w, self.h = pygame.display.Info().current_w, pygame.display.Info().current_h
+        self.screen = pygame.display.set_mode((self.w, self.h), pygame.FULLSCREEN | pygame.DOUBLEBUF)
+        pygame.mouse.set_visible(False)
+        self.run = True; self.st = time.time(); self.m_conn = False; self.a_tasks = 0; self.l_tasks = get_stats()
+        threading.Thread(target=self.manage, daemon=True).start()
 
-    <script>
-        function updateStats() {
-            fetch('/stats').then(res => res.json()).then(data => {
-                document.getElementById('node-count').innerText = data.nodes;
-                document.getElementById('pod-count').innerText = data.pods;
-                document.getElementById('task-total').innerText = data.lifetime;
-                document.getElementById('clock').innerText = new Date().toLocaleTimeString();
-                
-                let nodesHtml = "ACTIVE NODES:<br>";
-                data.node_names.forEach(n => { nodesHtml += "» " + n + "<br>"; });
-                document.getElementById('node-list').innerHTML = nodesHtml;
-            });
-        }
-        setInterval(updateStats, 3000);
-        updateStats();
-    </script>
-</body>
-</html>
-"""
+    def manage(self):
+        nn = os.getenv("HOSTNAME", "localhost").lower()
+        try:
+            subprocess.run(["kubectl", "uncordon", nn], capture_output=True)
+            while self.run:
+                self.m_conn = (subprocess.run(["kubectl", "cluster-info"], capture_output=True).returncode == 0)
+                res = subprocess.run(["docker", "ps", "--format", "{{.Image}}"], capture_output=True, text=True)
+                self.a_tasks = len(res.stdout.splitlines())
+                time.sleep(5)
+            subprocess.run(["kubectl", "cordon", nn], capture_output=True)
+        except: pass
 
-@app.route('/')
-def home():
-    return render_template_string(HTML_TEMPLATE)
+    def update_render(self):
+        font = pygame.font.SysFont("arial", 20)
+        while self.run:
+            for e in pygame.event.get():
+                if e.type in (pygame.QUIT, pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN): self.run = False
+            self.screen.fill((0,0,0))
+            txt = font.render(f"TOMIS.AI // MASTER: {'ON' if self.m_conn else 'OFF'} // JOBS: {self.a_tasks}", True, (100,100,100))
+            self.screen.blit(txt, (self.w - txt.get_width() - 20, self.h - 30))
+            pygame.display.flip()
+            pygame.time.Clock().tick(30)
+        pygame.quit(); sys.exit()
 
-@app.route('/stats')
-def stats():
-    try:
-        nodes = subprocess.check_output(["kubectl", "get", "nodes", "--no-headers"], text=True).count("\n")
-        node_names = subprocess.check_output(["kubectl", "get", "nodes", "-o", "custom-columns=NAME:.metadata.name", "--no-headers"], text=True).splitlines()
-        pods = subprocess.check_output(["kubectl", "get", "pods", "-A", "--no-headers"], text=True).count("\n")
-        
-        lifetime = 0
-        if os.path.exists("node_stats.txt"):
-            with open("node_stats.txt", "r") as f: lifetime = f.read().strip()
-            
-        return jsonify({
-            "nodes": nodes,
-            "node_names": node_names,
-            "pods": pods,
-            "lifetime": lifetime
-        })
-    except:
-        return jsonify({"nodes": 0, "node_names": [], "pods": 0, "lifetime": 0})
-
-if __name__ == '__main__':
-    print("TOMIS.AI Dashboard starting on port 28001...")
-    app.run(host='0.0.0.0', port=28001)
+if __name__ == "__main__": Screensaver().update_render()
 EOF
 }
 
-# --- LOGICA MASTER (START DASHBOARD) ---
-setup_master() {
-    log "Instalare Master V20..."
-    generate_dashboard
-    # Pornim Dashboard-ul in fundal
-    pip3 install flask --quiet
-    nohup python3 TomisDashboard.py > dashboard.log 2>&1 &
-    log "Dashboard Master activ pe http://$(hostname -I | awk '{print $1}'):28001"
-
-    # --- INTEGRARE MODULE EXTRA ---
-    if [ -f "./extra.sh" ]; then
-        log "Executie module extra..."
-        bash ./extra.sh
-    fi
+generate_dashboard() {
+    # Am copiat logica Dashboard-ului profesional V21 aici
+    cat << 'EOF' > TomisDashboard.py
+from flask import Flask, render_template_string, jsonify
+import subprocess, os, time
+app = Flask(__name__)
+@app.route('/')
+def home(): return "<h1>TOMIS.AI COMMAND CENTER ACTIVE</h1><p>Check /stats for real-time data.</p>"
+@app.route('/stats')
+def stats():
+    try:
+        nodes = subprocess.check_output(["kubectl", "get", "nodes", "-o", "wide"], text=True)
+        pods = subprocess.check_output(["kubectl", "get", "pods", "-n", "tomis-ai"], text=True)
+        return jsonify({"nodes": nodes, "pods": pods})
+    except: return jsonify({"error": "K3s unreachable"})
+if __name__ == '__main__': app.run(host='0.0.0.0', port=28001)
+EOF
 }
 
-# --- MENIU SI LOGICA BASH ---
-echo "TOMIS.AI CLUSTER V20"
-echo "[1] MASTER [2] NODE [3] KIT OFFLINE [4] UPDATE AI STACK"
-read -p "Select: " OPT
+# --- 2. LOGICA DE INSTALARE ---
+install_deps() {
+    log "Instalare dependinte sistem Linux..."
+    apt-get update -qq && apt-get install -y curl nfs-common python3-pip docker.io -qq
+    pip3 install flask pygame-ce --quiet
+}
+
+setup_master() {
+    log ">>> INSTALARE ROL: MASTER AI <<<"
+    install_deps
+    generate_dashboard
+    
+    # K3s Server
+    if ! command -v k3s >/dev/null; then
+        log "Pornire K3s Server..."
+        curl -sfL https://get.k3s.io | sh -
+    fi
+    
+    # Dashboard in fundal
+    nohup python3 TomisDashboard.py > dashboard.log 2>&1 &
+    
+    # Configurare Token
+    sleep 5
+    MY_IP=$(hostname -I | awk '{print $1}')
+    TOKEN=$(cat /var/lib/rancher/k3s/server/node-token)
+    echo "{\"master_ip\": \"$MY_IP\", \"master_token\": \"$TOKEN\"}" > "$CONFIG_FILE"
+    
+    log "MASTER CONFIGURAT. Dashboard pe portul 28001."
+}
+
+setup_node() {
+    log ">>> INSTALARE ROL: NOD AI <<<"
+    install_deps
+    generate_screensaver
+    
+    if [ ! -f "$CONFIG_FILE" ]; then
+        log "EROARE: config.json nu exista! Copiati-l de pe Master."
+        exit 1
+    fi
+    
+    M_IP=$(grep -oP '"master_ip": "\K[^"]+' "$CONFIG_FILE")
+    M_TOKEN=$(grep -oP '"master_token": "\K[^"]+' "$CONFIG_FILE")
+    
+    curl -sfL https://get.k3s.io | K3S_URL=https://$M_IP:6443 K3S_TOKEN=$M_TOKEN sh -s - agent
+    log "NOD CONECTAT LA MASTER."
+}
+
+# --- MENIU ---
+echo "TOMIS.AI CLUSTER V21 (LINUX)"
+echo "[1] MASTER [2] NODE [3] KIT OFFLINE [4] UPDATE AI"
+read -p "Selection: " OPT
 
 case $OPT in
     1) setup_master ;;
-    *) log "Executie rol..." ;;
+    2) setup_node ;;
+    3) log "Generare kituri..." ; mkdir -p Tomis.AI.Nod ; cp Start-Deploy.sh Tomis.AI.Nod/ ;;
+    4) log "Update AI Stack..." ;;
+    *) echo "Optiune invalida." ;;
 esac
