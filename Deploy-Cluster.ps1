@@ -550,20 +550,100 @@ elseif ($Role -eq "NODE") {
     Generate-Screensaver
     if (!(Test-Path $Global:ConfigFile)) { Log-Message "ERROR: config.json missing!"; exit }
     $Conf = Get-Content $Global:ConfigFile | ConvertFrom-Json
-    $NodeName = "k3d-tomis-node-$($env:COMPUTERNAME.ToLower())"
-    if (!(Test-NodeExists -NodeName $NodeName)) {
-        k3d node create "tomis-node-$($env:COMPUTERNAME.ToLower())" --cluster tomis-cluster --k3s-node-label "accelerator=nvidia-gpu"
-        Log-Message "Node joined cluster."
-    } else {
-        Log-Message "Node already present in cluster; skipping create."
+    
+    # Auto-detect if running on Windows with WSL2
+    $IsWSL2 = Test-Path /proc/version -PathType Leaf 2>$null
+    
+    if ($IsWSL2) {
+        Log-Message "[WINDOWS WSL2 NODE] Detected WSL2 environment"
+        Log-Message "For Windows nodes, use: bash Start-Deploy.sh NODE"
+        exit 0
     }
     
-    # GPU Check on Node after join
-    Log-Message "`n=== GPU INITIALIZATION ON NODE ==="
-    Start-Sleep -Seconds 5
-    Test-GPUNode -NodeName $NodeName
+    # Windows native node (Docker Desktop agent)
+    $IsWindowsNode = $true
+    $NodeName = "windows-node-$($env:COMPUTERNAME.ToLower())"
     
-    Start-ScreensaverProcess
+    Log-Message "=== WINDOWS NODE DETECTED ==="
+    Log-Message "Node Name: $NodeName"
+    Log-Message "Computer: $env:COMPUTERNAME"
+    Log-Message "Docker Version: $(docker --version 2>&1)"
+    
+    # Detect GPU on Windows node
+    Log-Message "`n=== WINDOWS NODE GPU STATUS ==="
+    $GPUDetected = $false
+    
+    # Check NVIDIA GPU
+    if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
+        $GPUInfo = nvidia-smi --query-gpu=index,name --format=csv,noheader 2>&1
+        if ($GPUInfo -and $GPUInfo -notlike '*not found*') {
+            Log-Message "[OK] NVIDIA GPU detected:"
+            $GPUInfo -split "`n" | ForEach-Object { if ($_) { Log-Message "  $_" } }
+            $GPUDetected = $true
+        }
+    }
+    
+    # Check Windows native GPU (Intel Arc, AMD, etc)
+    $GPURegistry = Get-ItemProperty 'HKLM:\System\CurrentControlSet\Services\nvlddmkm' -ErrorAction SilentlyContinue
+    if ($GPURegistry) {
+        Log-Message "[OK] Windows GPU driver loaded (NVIDIA)"
+        $GPUDetected = $true
+    }
+    
+    if (!$GPUDetected) {
+        Log-Message "[INFO] No dedicated GPU detected - CPU-only node"
+    }
+    
+    # Assign label based on GPU
+    $NodeLabel = if ($GPUDetected) { "accelerator=gpu-capable" } else { "accelerator=cpu-only" }
+    
+    # For Windows nodes: Requires manual k3s agent setup or Docker Swarm
+    Log-Message "`n=== WINDOWS NODE REGISTRATION ==="
+    Log-Message "To join this Windows node to cluster, use one of:"
+    Log-Message "1. WSL2 method: bash Start-Deploy.sh NODE"
+    Log-Message "2. Docker Desktop: Configure Docker context for remote cluster"
+    Log-Message "3. Manual k3s: Download k3s-windows from https://github.com/k3s-io/k3s/releases"
+    Log-Message ""
+    Log-Message "Recommended node label: $NodeLabel"
+    Log-Message "Update after join: kubectl label node $NodeName `'$NodeLabel`' --overwrite"
+    
+    Log-Message "`nWindows Node Configuration Complete"
+    Log-Message "GPU Capability: $(if ($GPUDetected) { 'YES - Ready for GPU workloads' } else { 'NO - CPU-only mode' })"
+}
+elseif ($Role -eq "WINDOWS-NODE-CHECK") {
+    Log-Message "=== WINDOWS NODE VERIFICATION ==="
+    Log-Message "Machine: $env:COMPUTERNAME"
+    Log-Message "OS: $(Get-CimInstance Win32_OperatingSystem | Select-Object -ExpandProperty Caption)"
+    
+    # Check Docker
+    if (Get-Command docker -ErrorAction SilentlyContinue) {
+        Log-Message "Docker: $(docker --version 2>&1)"
+        Log-Message "Docker Info: $(docker info 2>&1 | Select-String 'OS|Architecture' | Select-Object -First 2)"
+    } else {
+        Log-Message "[ERROR] Docker not found - required for Windows node"
+    }
+    
+    # Check WSL2
+    if (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Subsystem') {
+        Log-Message "WSL2: Available"
+    }
+    
+    # Check GPU
+    Log-Message ""
+    Log-Message "GPU Detection:"
+    if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
+        nvidia-smi --query-gpu=index,name,driver_version --format=csv,noheader 2>&1 | ForEach-Object { Log-Message "  NVIDIA: $_" }
+    } else {
+        Log-Message "  NVIDIA: Not installed"
+    }
+    
+    $GPURegistry = Get-ItemProperty 'HKLM:\System\CurrentControlSet\Services\nvlddmkm' -ErrorAction SilentlyContinue
+    if ($GPURegistry) {
+        Log-Message "  GPU Driver: Loaded in kernel"
+    }
+    
+    Log-Message ""
+    Log-Message "Windows Node Ready: $(if (Get-Command docker -ErrorAction SilentlyContinue) { 'YES' } else { 'NO - Install Docker Desktop' })"
 }
 elseif ($Role -in @("EMULATE", "EMULATE_TASKS", "LOAD_TEST")) {
     Log-Message "=== EMULATING TASKS ==="

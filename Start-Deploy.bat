@@ -28,14 +28,16 @@ if "%ROLE%"=="" (
     echo [4] ACTUALIZARE MODELE AI ^& UTILS
     echo [5] EMULARE SARCINI / TEST MONITORIZARE
     echo [6] GPU DIAGNOSTICS
+    echo [7] WINDOWS NODE CHECK
     echo.
-    set /p CHOICE="Selection (1-6): "
+    set /p CHOICE="Selection (1-7): "
     if "!CHOICE!"=="1" set "ROLE=MASTER"
     if "!CHOICE!"=="2" set "ROLE=NODE"
     if "!CHOICE!"=="3" set "ROLE=GENERATE"
     if "!CHOICE!"=="4" set "ROLE=UPDATE_MODELS"
     if "!CHOICE!"=="5" set "ROLE=EMULATE"
     if "!CHOICE!"=="6" set "ROLE=GPU_DIAG"
+    if "!CHOICE!"=="7" set "ROLE=WINDOWS-NODE-CHECK"
 )
 
 :: GPU Diagnostics
