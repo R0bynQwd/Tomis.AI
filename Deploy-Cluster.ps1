@@ -505,15 +505,35 @@ if ($Role -eq "MASTER") {
     
     # Create Cluster (Allowing NodePorts for AI services)
     if (!(Test-ClusterExists)) {
-        k3d cluster create tomis-cluster --image $Global:K3sImage --api-port "0.0.0.0:6443" --port "28002-28015:28002-28015@loadbalancer" --k3s-arg "--service-node-port-range=28000-32767@server:0" --wait
+        Log-Message "Creating k3d cluster 'tomis-cluster'..."
+        $k3dCmd = "k3d cluster create tomis-cluster --image $Global:K3sImage --api-port 0.0.0.0:6443 --port 28002-28015:28002-28015@loadbalancer --k3s-arg '--service-node-port-range=28000-32767@server:0' --wait"
+        Log-Message "Command: $k3dCmd"
+        Invoke-Expression $k3dCmd 2>&1 | ForEach-Object { Log-Message $_ }
+        
+        Log-Message "Waiting for cluster to stabilize..."
+        Start-Sleep -Seconds 5
     } else {
         Log-Message "tomis-cluster already exists; reusing current cluster."
+    }
+    
+    # Wait for API to be responsive
+    $retries = 0
+    while ($retries -lt 30) {
+        $test = kubectl cluster-info 2>$null
+        if ($test) {
+            Log-Message "✓ Kubernetes API is responsive"
+            break
+        }
+        Log-Message "Waiting for Kubernetes API... ($($retries + 1)/30)"
+        Start-Sleep -Seconds 2
+        $retries++
     }
     
     $IP = Get-PhysicalIPv4Address
     $Token = "TOMIS_SECRET_" + (Get-Random -Minimum 1000 -Maximum 9999)
     $Config = @{ master_ip = $IP; master_token = $Token } | ConvertTo-Json
     Set-Content $Global:ConfigFile $Config
+    Log-Message "✓ config.json created with IP: $IP"
     
     # Label Master as CPU-only (K3d on Windows = no GPU)
     Start-Sleep -Seconds 3

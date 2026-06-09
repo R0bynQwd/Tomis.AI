@@ -1,0 +1,45 @@
+[2026-06-09 16:44:12] === INITIALIZING MASTER ROLE ===
+[2026-06-09 16:44:12] Downloading Core Binaries (k3d)...
+[2026-06-09 16:44:12] Using existing TOMIS_Screensaver.py (skip embedded template).
+[2026-06-09 16:48:17] === INITIALIZING MASTER ROLE ===
+[2026-06-09 16:48:17] Downloading Core Binaries (k3d)...
+[2026-06-09 16:48:17] Using existing TomisDashboard.py (skip embedded template).
+[2026-06-09 16:48:17] Using existing TOMIS_Screensaver.py (skip embedded template).
+[2026-06-09 16:48:17] Creating k3d cluster 'tomis-cluster'...
+[2026-06-09 16:48:17] Command: k3d cluster create tomis-cluster --image rancher/k3s:v1.24.17-k3s1 --api-port 0.0.0.0:6443 --port 28002-28015:28002-28015@loadbalancer --k3s-arg '--service-node-port-range=28000-32767@server:0' --wait
+[2026-06-09 16:48:17] [36mINFO[0m[0000] portmapping '28002-28015:28002-28015' targets the loadbalancer: defaulting to [servers:*:proxy agents:*:proxy] 
+[2026-06-09 16:48:17] [36mINFO[0m[0000] Prep: Network                                
+[2026-06-09 16:48:18] [36mINFO[0m[0000] Created network 'k3d-tomis-cluster'          
+[2026-06-09 16:48:18] [36mINFO[0m[0000] Created image volume k3d-tomis-cluster-images 
+[2026-06-09 16:48:18] [36mINFO[0m[0000] Starting new tools node...                   
+[2026-06-09 16:48:19] [36mINFO[0m[0001] Creating node 'k3d-tomis-cluster-server-0'   
+[2026-06-09 16:48:19] [36mINFO[0m[0001] Creating LoadBalancer 'k3d-tomis-cluster-serverlb' 
+[2026-06-09 16:48:19] [36mINFO[0m[0001] Pulling image 'ghcr.io/k3d-io/k3d-tools:5.9.0' 
+[2026-06-09 16:48:22] [36mINFO[0m[0005] Starting node 'k3d-tomis-cluster-tools'      
+[2026-06-09 16:48:26] [36mINFO[0m[0008] Pulling image 'ghcr.io/k3d-io/k3d-proxy:5.9.0' 
+[2026-06-09 16:48:32] [36mINFO[0m[0014] Using the k3d-tools node to gather environment information 
+[2026-06-09 16:48:33] [36mINFO[0m[0015] Starting new tools node...                   
+[2026-06-09 16:48:33] [36mINFO[0m[0015] Starting node 'k3d-tomis-cluster-tools'      
+[2026-06-09 16:48:35] [36mINFO[0m[0017] Starting cluster 'tomis-cluster'             
+[2026-06-09 16:48:35] [36mINFO[0m[0017] Starting servers...                          
+[2026-06-09 16:48:35] [36mINFO[0m[0017] Starting node 'k3d-tomis-cluster-server-0'   
+[2026-06-09 16:48:42] [36mINFO[0m[0024] All agents already running.                  
+[2026-06-09 16:48:42] [36mINFO[0m[0024] Starting helpers...                          
+[2026-06-09 16:48:42] [36mINFO[0m[0025] Starting node 'k3d-tomis-cluster-serverlb'   
+[2026-06-09 16:48:50] [36mINFO[0m[0032] Injecting records for hostAliases (incl. host.k3d.internal) and for 3 network members into CoreDNS configmap... 
+[2026-06-09 16:48:52] [36mINFO[0m[0034] Cluster 'tomis-cluster' created successfully! 
+[2026-06-09 16:48:52] [36mINFO[0m[0034] You can now use it like this:                
+[2026-06-09 16:48:52] kubectl cluster-info
+[2026-06-09 16:48:52] Waiting for cluster to stabilize...
+[2026-06-09 16:48:58] ✓ Kubernetes API is responsive
+[2026-06-09 16:49:15] ✓ config.json created with IP: 192.168.1.104
+[2026-06-09 16:49:19] [CPU-ONLY] Master node labeled for container scheduling (no GPU support in k3d/Docker Desktop)
+[2026-06-09 16:49:19] 
+=== GPU DIAGNOSTICS SCAN ===
+[2026-06-09 16:49:19] === GPU DIAGNOSTICS: k3d-tomis-cluster-server-0 ===
+[2026-06-09 16:49:20] [INFO] No GPU detected on k3d-tomis-cluster-server-0 (CPU-only mode)
+[2026-06-09 16:49:20] 
+=== WINDOWS DOCKER GPU STATUS ===
+[2026-06-09 16:49:22] [OK] Docker Desktop has GPU support enabled
+[2026-06-09 16:49:24] Screensaver started for GUI session.
+[2026-06-09 16:49:24] Master Active at 192.168.1.104. Dashboard on port 28001.
