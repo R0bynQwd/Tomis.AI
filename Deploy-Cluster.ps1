@@ -515,6 +515,11 @@ if ($Role -eq "MASTER") {
     $Config = @{ master_ip = $IP; master_token = $Token } | ConvertTo-Json
     Set-Content $Global:ConfigFile $Config
     
+    # Label Master as CPU-only (K3d on Windows = no GPU)
+    Start-Sleep -Seconds 3
+    kubectl label node k3d-tomis-cluster-server-0 "accelerator=cpu-only" --overwrite 2>$null | Out-Null
+    Log-Message "[CPU-ONLY] Master node labeled for container scheduling (no GPU support in k3d/Docker Desktop)"
+    
     # GPU Diagnostics on Master
     Log-Message "`n=== GPU DIAGNOSTICS SCAN ==="
     $Nodes = kubectl get nodes --no-headers 2>$null
@@ -523,6 +528,15 @@ if ($Role -eq "MASTER") {
             $NodeName = ($NodeLine -split '\s+')[0]
             Test-GPUNode -NodeName $NodeName
         }
+    }
+    
+    # Windows GPU Support Info
+    Log-Message "`n=== WINDOWS DOCKER GPU STATUS ==="
+    $DockerGPU = docker info 2>$null | Select-String -Pattern 'nvidia|gpu' -Quiet
+    if ($DockerGPU) {
+        Log-Message "[OK] Docker Desktop has GPU support enabled"
+    } else {
+        Log-Message "[INFO] Windows Master (K3d) runs CPU-only - GPU workloads route to edge nodes (Jetson, specialized servers)"
     }
     
     # Start Dashboard
