@@ -1,0 +1,21 @@
+{
+  "total_tasks": 7,
+  "initial_matches": 4,
+  "initial_mismatches": 3,
+  "escalations": 3,
+  "final_consensus": 5,
+  "final_inconclusive": 2,
+  "worker_success": {
+    "master-local": 7,
+    "jetson-116": 8,
+    "edge-117": 5
+  },
+  "worker_fail": {
+    "master-local": 0,
+    "jetson-116": 0,
+    "edge-117": 0
+  },
+  "started": "2026-06-09T13:30:24",
+  "ended": "2026-06-09T13:30:24",
+  "jsonl": "E:\\NAI\\soak_artifacts\\rule2_soak_20260609_132921.jsonl"
+}

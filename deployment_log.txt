@@ -14,3 +14,34 @@
 [2026-06-07 22:47:01] === INITIALIZING NODE ROLE ===
 [2026-06-07 22:47:01] Downloading Core Binaries (k3d)...
 [2026-06-07 22:47:10] Node joined cluster.
+[2026-06-09 10:50:55] === INITIALIZING MASTER ROLE ===
+[2026-06-09 10:50:55] Downloading Core Binaries (k3d)...
+[2026-06-09 10:56:06] === INITIALIZING MASTER ROLE ===
+[2026-06-09 10:56:06] Downloading Core Binaries (k3d)...
+[2026-06-09 10:56:07] Master Active at . Dashboard on port 28001.
+[2026-06-09 10:56:12] === INITIALIZING NODE ROLE ===
+[2026-06-09 10:56:12] Downloading Core Binaries (k3d)...
+[2026-06-09 10:56:48] Node joined cluster.
+[2026-06-09 11:05:16] === INITIALIZING MASTER ROLE ===
+[2026-06-09 11:05:16] Downloading Core Binaries (k3d)...
+[2026-06-09 11:08:04] === INITIALIZING MASTER ROLE ===
+[2026-06-09 11:08:04] Downloading Core Binaries (k3d)...
+[2026-06-09 11:10:38] === INITIALIZING MASTER ROLE ===
+[2026-06-09 11:10:38] Downloading Core Binaries (k3d)...
+[2026-06-09 12:17:29] === EMULATING TASKS ===
+[2026-06-09 12:17:29] Downloading Core Binaries (k3d)...
+[2026-06-09 12:17:29] === EMULATING TASK LOAD ===
+[2026-06-09 12:17:29] Local task emulator started.
+[2026-06-09 12:17:30] Kubernetes is not reachable; local task emulation only.
+[2026-06-09 12:17:30] Task emulation deployed.
+[2026-06-09 12:56:22] === INITIALIZING MASTER ROLE ===
+[2026-06-09 12:56:22] Downloading Core Binaries (k3d)...
+[2026-06-09 12:56:23] tomis-cluster already exists; reusing current cluster.
+[2026-06-09 12:56:50] Dashboard already listening on port 28001; skipping start.
+[2026-06-09 12:56:50] Screensaver started for GUI session.
+[2026-06-09 12:56:50] Master Active at 192.168.1.104. Dashboard on port 28001.
+[2026-06-09 12:56:50] === EMULATING TASKS ===
+[2026-06-09 12:56:50] Downloading Core Binaries (k3d)...
+[2026-06-09 12:56:50] === EMULATING TASK LOAD ===
+[2026-06-09 12:56:51] Local task emulator started.
+[2026-06-09 12:56:59] Task emulation deployed.

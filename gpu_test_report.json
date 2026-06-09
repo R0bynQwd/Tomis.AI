@@ -1,0 +1,8 @@
+{
+  "test_name": "Jetson GPU Diagnostic",
+  "timestamp": "2026-06-09T16:05:21.659367",
+  "status": "NO_GPU",
+  "findings": [
+    "No NVIDIA GPU detected on Jetson"
+  ]
+}
